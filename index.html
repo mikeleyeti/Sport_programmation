@@ -2,8 +2,16 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#e67e22">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Reprise">
+  <meta name="description" content="Suivi de programme sportif : planning et carnet de séances">
   <title>Programme Sportif — Reprise</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -94,8 +102,25 @@
 
       <div id="save-toast" class="toast hidden">✅ Séance sauvegardée !</div>
     </main>
+
+    <!-- Install PWA banner -->
+    <div id="install-banner" class="install-banner hidden">
+      <span>📲 Installer l'appli sur ton téléphone</span>
+      <button id="install-btn" class="install-btn">Installer</button>
+      <button class="install-close" onclick="dismissInstall()">✕</button>
+    </div>
   </div>
 
   <script src="app.js"></script>
+  <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

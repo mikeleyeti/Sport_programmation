@@ -490,3 +490,39 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ---- PWA INSTALL PROMPT ----
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Show install banner
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.classList.remove('hidden');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const installBtn = document.getElementById('install-btn');
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('Install outcome:', outcome);
+      deferredPrompt = null;
+      document.getElementById('install-banner').classList.add('hidden');
+    });
+  }
+});
+
+function dismissInstall() {
+  document.getElementById('install-banner').classList.add('hidden');
+}
+
+// Hide banner if already installed
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').classList.add('hidden');
+  deferredPrompt = null;
+});
