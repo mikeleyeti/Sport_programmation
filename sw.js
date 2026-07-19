@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reprise-v4';
+const CACHE_NAME = 'reprise-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -45,21 +45,30 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Navigation (le HTML de l'app) : NETWORK-FIRST → l'app se met à jour dès
+  // qu'il y a du réseau ; repli sur le cache hors-ligne. Évite qu'une ancienne
+  // coquille reste figée après une mise à jour.
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', clone));
+        return response;
+      }).catch(() => caches.match(event.request).then(c => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Autres ressources (CSS, JS, polices, icônes) : CACHE-FIRST, puis réseau.
   event.respondWith(
     caches.match(event.request).then(cached => {
       return cached || fetch(event.request).then(response => {
-        // Cache new successful requests
         if (response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       });
-    }).catch(() => {
-      // Offline fallback
-      if (event.request.destination === 'document') {
-        return caches.match('./index.html');
-      }
     })
   );
 });

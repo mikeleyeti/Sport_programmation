@@ -678,6 +678,12 @@ async function loadHistory(force) {
       renderHistory();
       return;
     }
+    // Réponse "ok" mais sans tableau sessions => ancienne version du script déployée.
+    if (json && json.status === "ok") {
+      setHistoryStatus("⚠️ Script à redéployer (endpoint « sessions » absent)");
+      renderHistory();
+      return;
+    }
     throw new Error("réponse inattendue");
   } catch (err) {
     console.warn("Historique distant indisponible.", err);
