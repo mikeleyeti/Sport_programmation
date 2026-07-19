@@ -4,13 +4,13 @@
 
 // ---- PLANNING DATA ----
 const PLANNING = [
-  { day: 0, label: "Lundi", type: "rest", emoji: "💤", title: "Repos", detail: "Récupération" },
-  { day: 1, label: "Mardi", type: "cardio", emoji: "🚣", title: "Salle 1 — Cardio doux", detail: "Rameur, vélo ou elliptique · 35-45 min · FC 140-155 bpm" },
-  { day: 2, label: "Mercredi", type: "push", emoji: "🏋️", title: "Salle 2 — Poussée", detail: "Pectoraux · Épaules (incliné) · Triceps" },
-  { day: 3, label: "Jeudi", type: "run", emoji: "🏃", title: "Footing 1 — Endurance", detail: "40-45 min · Allure 5:50-6:30 /km · FC 140-160 bpm" },
-  { day: 4, label: "Vendredi", type: "rest", emoji: "💤", title: "Repos", detail: "Récupération" },
-  { day: 5, label: "Samedi", type: "pull", emoji: "🏋️", title: "Salle 3 — Tirage", detail: "Dos · Biceps · Gainage" },
-  { day: 6, label: "Dimanche", type: "run", emoji: "🏃", title: "Footing 2 — Sortie longue", detail: "50-60 min · Allure 6:00-6:45 /km · FC 135-155 bpm" },
+  { day: 0, label: "Lundi", type: "rest", emoji: "🚶", title: "Marche + routine matinale", detail: "Routine matinale (10 min) · Marche 30 min dans la journée · Récup active" },
+  { day: 1, label: "Mardi", type: "cardio", emoji: "🏊", title: "Natation — décharge complète", detail: "30-40 min · Dos crawlé en priorité, crawl si à l'aise · PAS de brasse (cambrure)" },
+  { day: 2, label: "Mercredi", type: "push", emoji: "🏋️", title: "Salle 1 — Poussée (adaptée)", detail: "Pectoraux · Épaules · Triceps · ⚠️ Éviter développé debout et exos en charge axiale" },
+  { day: 3, label: "Jeudi", type: "cardio", emoji: "🏊", title: "Natation ou vélo home-trainer", detail: "30-40 min · Position droite sur vélo · Sans à-coups · Zéro impact" },
+  { day: 4, label: "Vendredi", type: "rest", emoji: "🚶", title: "Marche + routine matinale", detail: "Routine matinale (10 min) · Marche 30 min · Éviter position assise prolongée" },
+  { day: 5, label: "Samedi", type: "pull", emoji: "🏋️", title: "Salle 2 — Tirage (adaptée)", detail: "Dos · Biceps · Gainage · ⚠️ Éviter rowing barre penché et soulevé de terre" },
+  { day: 6, label: "Dimanche", type: "run", emoji: "🚶", title: "Marche longue en nature", detail: "45-60 min · Terrain souple (forêt, chemins) · Allure confortable · Chaussures qui amortissent" },
 ];
 
 // ---- CATALOGUE D'EXERCICES (repli intégré) ----
