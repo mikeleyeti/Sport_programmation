@@ -4,13 +4,13 @@
 
 // ---- PLANNING DATA ----
 const PLANNING = [
-  { day: 0, label: "Lundi",    type: "rest",   emoji: "💤", title: "Repos",                    detail: "Récupération" },
-  { day: 1, label: "Mardi",    type: "cardio", emoji: "🚣", title: "Salle 1 — Cardio doux",    detail: "Rameur, vélo ou elliptique · 35-45 min · FC 140-155 bpm" },
-  { day: 2, label: "Mercredi", type: "push",   emoji: "🏋️", title: "Salle 2 — Poussée",        detail: "Pectoraux · Épaules (incliné) · Triceps" },
-  { day: 3, label: "Jeudi",    type: "run",    emoji: "🏃", title: "Footing 1 — Endurance",     detail: "40-45 min · Allure 5:50-6:30 /km · FC 140-160 bpm" },
-  { day: 4, label: "Vendredi", type: "rest",   emoji: "💤", title: "Repos",                    detail: "Récupération" },
-  { day: 5, label: "Samedi",   type: "pull",   emoji: "🏋️", title: "Salle 3 — Tirage",         detail: "Dos · Biceps · Gainage" },
-  { day: 6, label: "Dimanche", type: "run",    emoji: "🏃", title: "Footing 2 — Sortie longue", detail: "50-60 min · Allure 6:00-6:45 /km · FC 135-155 bpm" },
+  { day: 0, label: "Lundi", type: "rest", emoji: "💤", title: "Repos", detail: "Récupération" },
+  { day: 1, label: "Mardi", type: "cardio", emoji: "🚣", title: "Salle 1 — Cardio doux", detail: "Rameur, vélo ou elliptique · 35-45 min · FC 140-155 bpm" },
+  { day: 2, label: "Mercredi", type: "push", emoji: "🏋️", title: "Salle 2 — Poussée", detail: "Pectoraux · Épaules (incliné) · Triceps" },
+  { day: 3, label: "Jeudi", type: "run", emoji: "🏃", title: "Footing 1 — Endurance", detail: "40-45 min · Allure 5:50-6:30 /km · FC 140-160 bpm" },
+  { day: 4, label: "Vendredi", type: "rest", emoji: "💤", title: "Repos", detail: "Récupération" },
+  { day: 5, label: "Samedi", type: "pull", emoji: "🏋️", title: "Salle 3 — Tirage", detail: "Dos · Biceps · Gainage" },
+  { day: 6, label: "Dimanche", type: "run", emoji: "🏃", title: "Footing 2 — Sortie longue", detail: "50-60 min · Allure 6:00-6:45 /km · FC 135-155 bpm" },
 ];
 
 // ---- EXERCISES DATA ----
@@ -141,6 +141,11 @@ const EXERCISES = {
   ]
 };
 
+// ---- CONFIG ----
+// URL de l'application web Google Apps Script (voir apps-script.gs + README).
+// Laisser vide ("") pour désactiver l'envoi vers Google Sheets (sauvegarde locale uniquement).
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyhpRzNSm3900H97CNUzSQU76_0ltP4q8Aw3oakQtk2OkdhXyMDQm5GXTw4EBoPWs-krA/exec";
+
 // ---- STATE ----
 let currentWeekOffset = 0;
 let currentSession = "poussee";
@@ -166,8 +171,8 @@ function formatDateISO(date) {
 function isToday(date) {
   const today = new Date();
   return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear();
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
 }
 
 // ---- AGENDA VIEW ----
@@ -281,7 +286,7 @@ function renderExercises(sessionKey) {
 function onSetCheck(session, exIdx, setNum) {
   const checkbox = document.getElementById(`check-${session}-${exIdx}-${setNum}`);
   const box = document.getElementById(`set-${session}-${exIdx}-${setNum}`);
-  
+
   if (checkbox.checked) {
     box.classList.add('checked');
   } else {
@@ -297,10 +302,10 @@ function onSetCheck(session, exIdx, setNum) {
       break;
     }
   }
-  
+
   const exCheck = document.getElementById(`excheck-${session}-${exIdx}`);
   exCheck.checked = allDone;
-  
+
   const exItem = exCheck.closest('.exercise-item');
   if (allDone) {
     exItem.classList.add('completed');
@@ -339,7 +344,7 @@ function getSessionKey() {
   return `session-${currentSession}-${date}`;
 }
 
-function saveSession() {
+async function saveSession() {
   const date = document.getElementById('session-date').value;
   if (!date) {
     alert("Choisis une date pour la séance !");
@@ -365,12 +370,69 @@ function saveSession() {
     data[idx] = exData;
   });
 
+  // 1) Sauvegarde locale (toujours, source de vérité + hors-ligne)
   localStorage.setItem(getSessionKey(), JSON.stringify(data));
 
-  // Show toast
   const toast = document.getElementById('save-toast');
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), 2500);
+  const showToast = (msg) => {
+    toast.textContent = msg;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+  };
+
+  // 2) Envoi vers Google Sheets (si configuré)
+  if (!GOOGLE_SHEET_URL) {
+    showToast("✅ Séance sauvegardée (local) !");
+    return;
+  }
+
+  showToast("💾 Sauvegarde… envoi vers Google Sheets…");
+  const ok = await sendToGoogleSheet(date, data);
+  showToast(ok
+    ? "✅ Séance sauvegardée (local + Google Sheets) !"
+    : "⚠️ Enregistrée en local, mais envoi Google Sheets échoué.");
+}
+
+// Construit la charge utile lisible et l'envoie à l'application Apps Script.
+async function sendToGoogleSheet(date, data) {
+  const exercises = EXERCISES[currentSession];
+  const sessionLabels = { poussee: "Poussée", tirage: "Tirage" };
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    date: date,
+    session: currentSession,
+    sessionLabel: sessionLabels[currentSession] || currentSession,
+    exercises: exercises.map((ex, idx) => ({
+      num: ex.num,
+      name: ex.name,
+      machine: ex.machine,
+      muscle: ex.muscle,
+      repsTarget: ex.reps,
+      done: data[idx] ? data[idx].checked : false,
+      sets: (data[idx] ? data[idx].sets : []).map((s, sIdx) => ({
+        set: sIdx + 1,
+        done: s.checked,
+        weight: s.weight || ""
+      }))
+    }))
+  };
+
+  try {
+    // Content-Type "text/plain" => requête simple, pas de préflight CORS.
+    const res = await fetch(GOOGLE_SHEET_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json().catch(() => ({}));
+    if (result && result.status === "ok") return true;
+    console.warn("Réponse Google Sheets inattendue:", result);
+    return res.ok;
+  } catch (err) {
+    console.error("Échec de l'envoi vers Google Sheets:", err);
+    return false;
+  }
 }
 
 function loadSessionData() {
@@ -392,7 +454,7 @@ function loadSessionData() {
 
     const exCheck = document.getElementById(`excheck-${currentSession}-${idx}`);
     exCheck.checked = exData.checked;
-    
+
     const exItem = exCheck.closest('.exercise-item');
     if (exData.checked) {
       exItem.classList.add('completed');
@@ -497,7 +559,7 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  
+
   // Show install banner
   const banner = document.getElementById('install-banner');
   if (banner) banner.classList.remove('hidden');
