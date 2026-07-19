@@ -34,6 +34,9 @@
         <button class="nav-btn" data-view="carnet" onclick="showView('carnet')">
           <span class="nav-icon">📓</span> Carnet
         </button>
+        <button class="nav-btn" data-view="history" onclick="showView('history')">
+          <span class="nav-icon">📊</span> Progression
+        </button>
       </nav>
     </header>
 
@@ -104,6 +107,49 @@
       <div id="save-toast" class="toast hidden">✅ Séance sauvegardée !</div>
     </main>
 
+    <!-- HISTORY VIEW -->
+    <main id="view-history" class="view">
+      <div class="history-header">
+        <h2 class="carnet-title">📊 Progression</h2>
+        <div class="history-tools">
+          <span id="history-status" class="history-status"></span>
+          <button class="btn-reset" onclick="loadHistory(true)">🔄 Actualiser</button>
+        </div>
+      </div>
+
+      <div id="history-empty" class="history-empty hidden">
+        Aucune séance enregistrée pour le moment. Sauvegarde des séances dans le
+        Carnet pour voir ta progression ici.
+      </div>
+
+      <div id="history-charts" class="history-charts">
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <h3>Progression des charges</h3>
+            <select id="progress-exercise" class="chart-select" onchange="renderProgressChart()"></select>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-progress"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-head"><h3>Volume par séance</h3></div>
+          <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
+          <p class="chart-note">Volume = Σ (charge × répétitions) des séries validées.</p>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-head"><h3>Assiduité (séances / semaine)</h3></div>
+          <div class="chart-wrap"><canvas id="chart-frequency"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-head"><h3>Taux de complétion</h3></div>
+          <div class="chart-wrap"><canvas id="chart-completion"></canvas></div>
+          <p class="chart-note">% de séries validées par séance.</p>
+        </div>
+      </div>
+    </main>
+
     <!-- Modale de sélection d'exercice -->
     <div id="modal-overlay" class="modal-overlay hidden">
       <div class="modal" role="dialog" aria-modal="true">
@@ -123,6 +169,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="app.js"></script>
   <script>
     // Register Service Worker for PWA

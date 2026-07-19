@@ -89,6 +89,11 @@ let catalogById = {};                          // index id -> exercice
 const sessionExercises = { poussee: [], tirage: [] };  // exercices résolus affichés
 const sessionCompIds = { poussee: [], tirage: [] };    // identifiants effectivement affichés
 
+// Historique (dataviz)
+let historyRows = [];        // lignes brutes (une par série) provenant du Sheet
+let historyLoaded = false;   // évite de recharger à chaque ouverture de la vue
+const charts = {};           // instances Chart.js (pour destruction/refresh)
+
 // ---- UTILS ----
 function getMonday(date) {
   const d = new Date(date);
@@ -620,6 +625,10 @@ function showView(viewName) {
 
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelector(`.nav-btn[data-view="${viewName}"]`).classList.add('active');
+
+  if (viewName === 'history' && !historyLoaded) {
+    loadHistory(false);
+  }
 }
 
 function showSession(sessionKey) {
@@ -632,6 +641,248 @@ function showSession(sessionKey) {
   document.querySelector(`.carnet-tab[data-session="${sessionKey}"]`).classList.add('active');
 
   loadSessionData();
+}
+
+// ---- HISTORIQUE / DATAVIZ ----
+function setHistoryStatus(msg) {
+  const el = document.getElementById('history-status');
+  if (el) el.textContent = msg;
+}
+
+// Charge l'historique depuis Google Sheets (avec cache local pour le hors-ligne).
+async function loadHistory(force) {
+  historyLoaded = true;
+
+  // Repli immédiat sur le cache local pour un affichage instantané.
+  const cached = localStorage.getItem('history-cache');
+  if (cached && !historyRows.length) {
+    try { historyRows = JSON.parse(cached) || []; } catch (e) { historyRows = []; }
+    renderHistory();
+  }
+
+  if (!GOOGLE_SHEET_URL) {
+    setHistoryStatus(cached ? "Cache local (Google Sheets non configuré)" : "Google Sheets non configuré");
+    if (!cached) renderHistory();
+    return;
+  }
+
+  setHistoryStatus("Chargement…");
+  try {
+    const res = await fetch(`${GOOGLE_SHEET_URL}?action=sessions${force ? `&t=${Date.now()}` : ''}`);
+    const json = await res.json();
+    if (json && json.status === "ok" && Array.isArray(json.sessions)) {
+      historyRows = json.sessions;
+      localStorage.setItem('history-cache', JSON.stringify(historyRows));
+      const now = new Date();
+      setHistoryStatus(`À jour · ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`);
+      renderHistory();
+      return;
+    }
+    throw new Error("réponse inattendue");
+  } catch (err) {
+    console.warn("Historique distant indisponible.", err);
+    setHistoryStatus(historyRows.length ? "Hors-ligne · cache local" : "Indisponible (hors-ligne)");
+    renderHistory();
+  }
+}
+
+// Extrait le premier nombre d'une chaîne ("35 kg" -> 35, "PDC" -> null).
+function parseNumber(str) {
+  if (str == null) return null;
+  const m = String(str).replace(',', '.').match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+
+function parseLocalDate(iso) {
+  const parts = String(iso).split('-').map(Number);
+  return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+}
+
+// Clé ISO année-semaine (lundi) + date du lundi, pour l'assiduité.
+function isoWeekInfo(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  const monday = getMonday(date);
+  return { key: `${d.getUTCFullYear()}-S${String(week).padStart(2, '0')}`, monday };
+}
+
+function renderHistory() {
+  const hasData = historyRows.length > 0;
+  document.getElementById('history-empty').classList.toggle('hidden', hasData);
+  document.getElementById('history-charts').classList.toggle('hidden', !hasData);
+  if (!hasData) return;
+
+  if (typeof Chart === 'undefined') {
+    setHistoryStatus("Graphiques indisponibles hors-ligne (Chart.js non chargé)");
+    return;
+  }
+
+  // Sélecteur d'exercice pour la progression
+  const select = document.getElementById('progress-exercise');
+  const exercises = [...new Set(historyRows.map(r => r.exercice).filter(Boolean))].sort();
+  const previous = select.value;
+  select.innerHTML = '';
+  exercises.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  if (exercises.includes(previous)) select.value = previous;
+
+  renderProgressChart();
+  renderVolumeChart();
+  renderFrequencyChart();
+  renderCompletionChart();
+}
+
+// Regroupe les lignes par séance : clé "date|session".
+function groupBySession() {
+  const map = new Map();
+  historyRows.forEach(r => {
+    const key = `${r.date}|${r.session}`;
+    if (!map.has(key)) map.set(key, { date: r.date, session: r.session, rows: [] });
+    map.get(key).rows.push(r);
+  });
+  return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function sessionColor(session) {
+  return /tir/i.test(session) ? '#2e86c1' : '#e67e22';
+}
+
+function makeChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, config);
+}
+
+function renderProgressChart() {
+  if (typeof Chart === 'undefined') return;
+  const name = document.getElementById('progress-exercise').value;
+  const points = [];
+  // Charge max par date pour l'exercice sélectionné.
+  const byDate = new Map();
+  historyRows.filter(r => r.exercice === name).forEach(r => {
+    const w = parseNumber(r.charge);
+    if (w == null) return;
+    const cur = byDate.get(r.date);
+    if (cur == null || w > cur) byDate.set(r.date, w);
+  });
+  [...byDate.keys()].sort().forEach(date => points.push({ date, w: byDate.get(date) }));
+
+  makeChart('chart-progress', {
+    type: 'line',
+    data: {
+      labels: points.map(p => formatDate(parseLocalDate(p.date))),
+      datasets: [{
+        label: `${name} — charge max (kg)`,
+        data: points.map(p => p.w),
+        borderColor: '#e67e22',
+        backgroundColor: 'rgba(230,126,34,0.15)',
+        tension: 0.25,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: '#e67e22'
+      }]
+    },
+    options: baseOptions()
+  });
+}
+
+function renderVolumeChart() {
+  const sessions = groupBySession();
+  const data = sessions.map(s => {
+    let vol = 0;
+    s.rows.forEach(r => {
+      if (!/oui/i.test(r.fait)) return;
+      const w = parseNumber(r.charge);
+      const reps = parseNumber(r.reps);
+      if (w != null && reps != null && w > 0) vol += w * reps;
+    });
+    return vol;
+  });
+
+  makeChart('chart-volume', {
+    type: 'bar',
+    data: {
+      labels: sessions.map(s => `${formatDate(parseLocalDate(s.date))} · ${s.session}`),
+      datasets: [{
+        label: 'Volume (kg × reps)',
+        data,
+        backgroundColor: sessions.map(s => sessionColor(s.session))
+      }]
+    },
+    options: baseOptions()
+  });
+}
+
+function renderFrequencyChart() {
+  const sessions = groupBySession();
+  const byWeek = new Map();
+  sessions.forEach(s => {
+    const info = isoWeekInfo(parseLocalDate(s.date));
+    if (!byWeek.has(info.key)) byWeek.set(info.key, { label: formatDate(info.monday), count: 0 });
+    byWeek.get(info.key).count += 1;
+  });
+  const keys = [...byWeek.keys()].sort();
+
+  makeChart('chart-frequency', {
+    type: 'bar',
+    data: {
+      labels: keys.map(k => `sem. ${byWeek.get(k).label}`),
+      datasets: [{
+        label: 'Séances',
+        data: keys.map(k => byWeek.get(k).count),
+        backgroundColor: '#27ae60'
+      }]
+    },
+    options: baseOptions({ stepSize: 1 })
+  });
+}
+
+function renderCompletionChart() {
+  const sessions = groupBySession();
+  const data = sessions.map(s => {
+    const total = s.rows.length;
+    const done = s.rows.filter(r => /oui/i.test(r.fait)).length;
+    return total ? Math.round((done / total) * 100) : 0;
+  });
+
+  makeChart('chart-completion', {
+    type: 'bar',
+    data: {
+      labels: sessions.map(s => `${formatDate(parseLocalDate(s.date))} · ${s.session}`),
+      datasets: [{
+        label: '% séries validées',
+        data,
+        backgroundColor: '#8e44ad'
+      }]
+    },
+    options: baseOptions({ max: 100 })
+  });
+}
+
+// Options communes aux graphiques (thème sombre).
+function baseOptions(yOpts) {
+  yOpts = yOpts || {};
+  const grid = { color: 'rgba(255,255,255,0.06)' };
+  const ticks = { color: '#8c919d' };
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#eef0f4' } }
+    },
+    scales: {
+      x: { grid, ticks },
+      y: Object.assign({ beginAtZero: true, grid, ticks: Object.assign({}, ticks, yOpts.stepSize ? { stepSize: yOpts.stepSize } : {}) }, yOpts.max ? { max: yOpts.max } : {})
+    }
+  };
 }
 
 // ---- INIT ----

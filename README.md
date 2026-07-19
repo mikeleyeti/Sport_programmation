@@ -26,6 +26,7 @@ Application web de suivi de programme sportif : planning hebdomadaire et carnet 
 - **Planning** : agenda hebdomadaire avec navigation entre les semaines
 - **Carnet** : suivi des séances de musculation avec cases à cocher par série, saisie des charges, sauvegarde locale
 - **Catalogue d'exercices** : chaque exercice peut être remplacé, ajouté ou retiré. Les remplacements ne proposent que des exercices du **même groupe musculaire** → la séance reste cohérente. La composition personnalisée est mémorisée par séance.
+- **Progression** : vue de dataviz (Chart.js) sur l'historique complet lu depuis Google Sheets — progression des charges par exercice, volume par séance, assiduité hebdomadaire et taux de complétion.
 
 ## Utilisation
 
@@ -79,6 +80,23 @@ peut être géré directement dans le Google Sheet, dans un onglet **`Catalogue`
 > La composition de chaque séance (exercices choisis) est mémorisée dans le
 > navigateur (`localStorage`), pas dans le Sheet. Le bouton **« Composition par
 > défaut »** rétablit la séance d'origine.
+
+## Vue Progression (dataviz)
+
+L'onglet **📊 Progression** lit l'historique complet des séances depuis Google
+Sheets (onglet `Séances`) et affiche quatre graphiques (Chart.js) :
+
+- **Progression des charges** — charge max par séance pour un exercice choisi.
+- **Volume par séance** — Σ (charge × répétitions) des séries validées.
+- **Assiduité** — nombre de séances par semaine.
+- **Taux de complétion** — % de séries validées par séance.
+
+Les données sont mises en cache localement : le dernier état connu reste visible
+hors-ligne. Le bouton **« Actualiser »** force un rechargement depuis le Sheet.
+
+> Nécessite que `GOOGLE_SHEET_URL` soit configuré et que le script soit
+> (re)déployé avec la dernière version d'`apps-script.gs` (endpoint `sessions`).
+> La qualité des courbes de charge dépend de la saisie des charges dans le Carnet.
 
 ## Déploiement GitHub Pages
 

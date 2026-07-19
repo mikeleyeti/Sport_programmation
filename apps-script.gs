@@ -89,7 +89,48 @@ function doGet(e) {
   if (action === "catalogue") {
     return json_({ status: "ok", catalogue: readCatalogue_() });
   }
+  if (action === "sessions") {
+    return json_({ status: "ok", sessions: readSessions_() });
+  }
   return json_({ status: "ok", message: "Programme Sportif endpoint actif." });
+}
+
+// Renvoie tout l'historique de l'onglet "Séances" (une ligne par série).
+function readSessions_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  var values = sheet.getDataRange().getValues();
+  var rows = [];
+  for (var r = 1; r < values.length; r++) {
+    var v = values[r];
+    if (!v[1]) continue; // pas de date de séance → ignore
+    rows.push({
+      timestamp: v[0] ? String(v[0]) : "",
+      date: formatDateCell_(v[1]),
+      session: String(v[2] || ""),
+      num: v[3] || "",
+      groupe: String(v[4] || ""),
+      exercice: String(v[5] || ""),
+      machine: String(v[6] || ""),
+      muscle: String(v[7] || ""),
+      reps: String(v[8] || ""),
+      serie: v[9] || "",
+      fait: String(v[10] || ""),
+      charge: String(v[11] || "")
+    });
+  }
+  return rows;
+}
+
+// La colonne date peut être une chaîne "YYYY-MM-DD" ou un objet Date (selon
+// le format de cellule) : on renvoie toujours "YYYY-MM-DD".
+function formatDateCell_(val) {
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+  return String(val).trim();
 }
 
 function readCatalogue_() {

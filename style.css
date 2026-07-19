@@ -729,6 +729,100 @@ body {
 }
 
 /* =============================================
+   HISTORIQUE / DATAVIZ
+   ============================================= */
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.history-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.history-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  line-height: 1.6;
+}
+
+.history-empty.hidden,
+.history-charts.hidden {
+  display: none;
+}
+
+.history-charts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+}
+
+.chart-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.chart-card-head h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.chart-select {
+  background: var(--bg-primary);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 13px;
+  cursor: pointer;
+  max-width: 55%;
+}
+
+.chart-select:focus {
+  outline: none;
+  border-color: var(--accent-orange);
+}
+
+.chart-wrap {
+  position: relative;
+  height: 240px;
+}
+
+.chart-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+/* =============================================
    MODALE — SÉLECTION D'EXERCICE
    ============================================= */
 
@@ -994,6 +1088,10 @@ body {
   .btn-save, .btn-reset {
     width: 100%;
     text-align: center;
+  }
+
+  .history-charts {
+    grid-template-columns: 1fr;
   }
 
   .legend {
