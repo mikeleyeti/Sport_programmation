@@ -98,10 +98,22 @@
       <div class="carnet-actions">
         <button class="btn-save" onclick="saveSession()">💾 Sauvegarder la séance</button>
         <button class="btn-reset" onclick="resetSession()">🔄 Réinitialiser</button>
+        <button class="btn-reset" onclick="resetComposition()">↩️ Composition par défaut</button>
       </div>
 
       <div id="save-toast" class="toast hidden">✅ Séance sauvegardée !</div>
     </main>
+
+    <!-- Modale de sélection d'exercice -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3 id="modal-title">Choisir un exercice</h3>
+          <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
+        </div>
+        <div id="modal-body" class="modal-body"><!-- Généré par JS --></div>
+      </div>
+    </div>
 
     <!-- Install PWA banner -->
     <div id="install-banner" class="install-banner hidden">

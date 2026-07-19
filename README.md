@@ -25,6 +25,7 @@ Application web de suivi de programme sportif : planning hebdomadaire et carnet 
 
 - **Planning** : agenda hebdomadaire avec navigation entre les semaines
 - **Carnet** : suivi des séances de musculation avec cases à cocher par série, saisie des charges, sauvegarde locale
+- **Catalogue d'exercices** : chaque exercice peut être remplacé, ajouté ou retiré. Les remplacements ne proposent que des exercices du **même groupe musculaire** → la séance reste cohérente. La composition personnalisée est mémorisée par séance.
 
 ## Utilisation
 
@@ -56,6 +57,28 @@ l'envoi vers Google Sheets échoue (hors-ligne, etc.).
 
 > Si tu modifies `apps-script.gs` plus tard, utilise **Déployer → Gérer les
 > déploiements** pour mettre à jour le déploiement existant (garde la même URL).
+
+## Catalogue d'exercices dans Google Sheet
+
+Le catalogue (liste de tous les exercices disponibles, par groupe musculaire)
+peut être géré directement dans le Google Sheet, dans un onglet **`Catalogue`** :
+
+1. Dans l'éditeur Apps Script, sélectionne la fonction **`seedCatalogue`** dans
+   la liste en haut, puis clique **▶ Exécuter** (autorise l'accès la 1re fois).
+   → l'onglet `Catalogue` est créé et pré-rempli.
+2. Édite librement cet onglet pour **ajouter / modifier / supprimer** des
+   exercices. Colonnes : `id`, `categorie` (`poussee`, `tirage` ou `both`),
+   `groupe`, `nom`, `machine`, `muscle`, `sets`, `reps`, `charge_s12`,
+   `charge_s34`, `repos`, `conseils`.
+   - L'`id` doit être **unique** (sans espace, ex. `chest-press-2`).
+   - Le `groupe` détermine les alternatives proposées lors d'un remplacement.
+3. L'appli lit ce catalogue au démarrage et le met en cache (fonctionne ensuite
+   hors-ligne). Si l'onglet `Catalogue` est absent ou vide, un catalogue intégré
+   par défaut est utilisé.
+
+> La composition de chaque séance (exercices choisis) est mémorisée dans le
+> navigateur (`localStorage`), pas dans le Sheet. Le bouton **« Composition par
+> défaut »** rétablit la séance d'origine.
 
 ## Déploiement GitHub Pages
 

@@ -13,132 +13,66 @@ const PLANNING = [
   { day: 6, label: "Dimanche", type: "run", emoji: "🏃", title: "Footing 2 — Sortie longue", detail: "50-60 min · Allure 6:00-6:45 /km · FC 135-155 bpm" },
 ];
 
-// ---- EXERCISES DATA ----
-const EXERCISES = {
-  poussee: [
-    {
-      num: 1,
-      name: "Développé couché machine",
-      machine: "Technogym Selection Chest Press",
-      muscle: "Pectoraux",
-      sets: 3, reps: "12",
-      charge_s12: "35 kg", charge_s34: "45 kg",
-      repos: "1'30",
-      tips: "Descente contrôlée (2s) · Omoplates serrées"
-    },
-    {
-      num: 2,
-      name: "Développé couché incliné machine",
-      machine: "Technogym Selection Incline Chest Press",
-      muscle: "Pectoraux supérieurs · Deltoïdes antérieurs",
-      sets: 3, reps: "12",
-      charge_s12: "25 kg", charge_s34: "35 kg",
-      repos: "1'30",
-      tips: "Dos plaqué · Mouvement sous la ligne des épaules"
-    },
-    {
-      num: 3,
-      name: "Pec-fly machine (Butterfly)",
-      machine: "Technogym Selection Pectoral Machine",
-      muscle: "Pectoraux (isolation)",
-      sets: 3, reps: "12",
-      charge_s12: "25 kg", charge_s34: "30 kg",
-      repos: "1'15",
-      tips: "Mouvement lent · Ne pas claquer les poignées"
-    },
-    {
-      num: 4,
-      name: "Élévations latérales haltères",
-      machine: "Haltères Technogym (rack libre)",
-      muscle: "Deltoïdes moyens",
-      sets: 3, reps: "15",
-      charge_s12: "6 kg", charge_s34: "8 kg",
-      repos: "1'00",
-      tips: "Monter jusqu'à l'horizontale max · Pas d'élan"
-    },
-    {
-      num: 5,
-      name: "Triceps poulie haute (corde)",
-      machine: "Technogym Selection Poulie",
-      muscle: "Triceps",
-      sets: 3, reps: "12",
-      charge_s12: "20 kg", charge_s34: "25 kg",
-      repos: "1'00",
-      tips: "Coudes collés au corps · Écarter la corde en bas"
-    },
-    {
-      num: 6,
-      name: "Gainage (planche)",
-      machine: "Au sol (tapis)",
-      muscle: "Sangle abdominale",
-      sets: 3, reps: "30-40s",
-      charge_s12: "PDC", charge_s34: "PDC",
-      repos: "0'45",
-      tips: "Face + côté D + côté G · Bassin neutre"
-    }
-  ],
-  tirage: [
-    {
-      num: 1,
-      name: "Tirage vertical (Lat Pulldown)",
-      machine: "Technogym Selection Lat Machine",
-      muscle: "Grand dorsal · Biceps",
-      sets: 3, reps: "12",
-      charge_s12: "40 kg", charge_s34: "50 kg",
-      repos: "1'30",
-      tips: "Tirer vers la poitrine · PAS derrière la nuque"
-    },
-    {
-      num: 2,
-      name: "Rowing machine assis",
-      machine: "Technogym Selection Seated Row",
-      muscle: "Dos (épaisseur)",
-      sets: 3, reps: "12",
-      charge_s12: "35 kg", charge_s34: "45 kg",
-      repos: "1'30",
-      tips: "Poitrine contre le support · Contrôler le retour"
-    },
-    {
-      num: 3,
-      name: "Tirage horizontal poulie basse",
-      machine: "Technogym Selection Low Row",
-      muscle: "Rhomboïdes · Trapèzes",
-      sets: 3, reps: "12",
-      charge_s12: "30 kg", charge_s34: "35 kg",
-      repos: "1'15",
-      tips: "Buste fixe · Tirer vers le nombril · Serrer 1s en fin"
-    },
-    {
-      num: 4,
-      name: "Oiseau machine (Reverse Fly)",
-      machine: "Technogym Selection Rear Delt",
-      muscle: "Deltoïdes postérieurs · Rhomboïdes",
-      sets: 3, reps: "15",
-      charge_s12: "15 kg", charge_s34: "20 kg",
-      repos: "1'00",
-      tips: "Bras à hauteur des épaules max · Serrer les omoplates"
-    },
-    {
-      num: 5,
-      name: "Curl biceps haltères (alternés)",
-      machine: "Haltères Technogym (rack libre)",
-      muscle: "Biceps",
-      sets: 3, reps: "12/bras",
-      charge_s12: "8 kg", charge_s34: "10 kg",
-      repos: "1'00",
-      tips: "Debout, pas d'élan · Descente lente (2s)"
-    },
-    {
-      num: 6,
-      name: "Gainage (planche)",
-      machine: "Au sol (tapis)",
-      muscle: "Sangle abdominale",
-      sets: 3, reps: "30-40s",
-      charge_s12: "PDC", charge_s34: "PDC",
-      repos: "0'45",
-      tips: "Face + côté D + côté G · Bassin neutre"
-    }
-  ]
+// ---- CATALOGUE D'EXERCICES (repli intégré) ----
+// Chaque exercice appartient à une catégorie (poussee / tirage / both) et à un
+// groupe musculaire. Le remplacement ne propose que des exercices du même groupe
+// → la séance reste cohérente avec son objectif.
+// Ce catalogue sert de valeur par défaut ; s'il existe un onglet "Catalogue" dans
+// le Google Sheet, il est chargé et remplace celui-ci (voir loadCatalog).
+const CATALOG_DEFAULT = [
+  // ===== POUSSÉE =====
+  // Pectoraux
+  { id: "chest-press", categorie: "poussee", groupe: "Pectoraux", name: "Développé couché machine", machine: "Technogym Selection Chest Press", muscle: "Pectoraux", sets: 3, reps: "12", charge_s12: "35 kg", charge_s34: "45 kg", repos: "1'30", tips: "Descente contrôlée (2s) · Omoplates serrées" },
+  { id: "chest-press-db", categorie: "poussee", groupe: "Pectoraux", name: "Développé couché haltères", machine: "Banc plat + haltères", muscle: "Pectoraux", sets: 3, reps: "12", charge_s12: "18 kg", charge_s34: "22 kg", repos: "1'30", tips: "Coudes ~45° · Descente 2s · Ne pas rebondir" },
+  { id: "pushups", categorie: "poussee", groupe: "Pectoraux", name: "Pompes", machine: "Poids du corps (tapis)", muscle: "Pectoraux · Triceps", sets: 3, reps: "max", charge_s12: "PDC", charge_s34: "PDC", repos: "1'00", tips: "Gainage · Amplitude complète · Coudes près du corps" },
+
+  // Pectoraux supérieurs
+  { id: "incline-press", categorie: "poussee", groupe: "Pectoraux supérieurs", name: "Développé couché incliné machine", machine: "Technogym Selection Incline Chest Press", muscle: "Pectoraux supérieurs · Deltoïdes antérieurs", sets: 3, reps: "12", charge_s12: "25 kg", charge_s34: "35 kg", repos: "1'30", tips: "Dos plaqué · Mouvement sous la ligne des épaules" },
+  { id: "incline-press-db", categorie: "poussee", groupe: "Pectoraux supérieurs", name: "Développé incliné haltères", machine: "Banc incliné (30-45°) + haltères", muscle: "Pectoraux supérieurs", sets: 3, reps: "12", charge_s12: "14 kg", charge_s34: "18 kg", repos: "1'30", tips: "Banc à 30-45° · Contrôle de la descente" },
+
+  // Pectoraux (isolation)
+  { id: "pec-fly", categorie: "poussee", groupe: "Pectoraux (isolation)", name: "Pec-fly machine (Butterfly)", machine: "Technogym Selection Pectoral Machine", muscle: "Pectoraux (isolation)", sets: 3, reps: "12", charge_s12: "25 kg", charge_s34: "30 kg", repos: "1'15", tips: "Mouvement lent · Ne pas claquer les poignées" },
+  { id: "cable-crossover", categorie: "poussee", groupe: "Pectoraux (isolation)", name: "Écarté à la poulie (crossover)", machine: "Poulie vis-à-vis", muscle: "Pectoraux (isolation)", sets: 3, reps: "12", charge_s12: "10 kg", charge_s34: "15 kg", repos: "1'15", tips: "Léger buste en avant · Serrer les pecs en fin" },
+
+  // Épaules
+  { id: "lat-raise-db", categorie: "poussee", groupe: "Épaules", name: "Élévations latérales haltères", machine: "Haltères Technogym (rack libre)", muscle: "Deltoïdes moyens", sets: 3, reps: "15", charge_s12: "6 kg", charge_s34: "8 kg", repos: "1'00", tips: "Monter jusqu'à l'horizontale max · Pas d'élan" },
+  { id: "shoulder-press", categorie: "poussee", groupe: "Épaules", name: "Développé épaules machine", machine: "Technogym Selection Shoulder Press", muscle: "Deltoïdes · Triceps", sets: 3, reps: "12", charge_s12: "20 kg", charge_s34: "30 kg", repos: "1'30", tips: "Ne pas cambrer · Amplitude contrôlée" },
+  { id: "lat-raise-cable", categorie: "poussee", groupe: "Épaules", name: "Élévations latérales poulie", machine: "Poulie basse (poignée)", muscle: "Deltoïdes moyens", sets: 3, reps: "15", charge_s12: "5 kg", charge_s34: "7 kg", repos: "1'00", tips: "Bras quasi tendu · Tempo lent · Un bras à la fois" },
+
+  // Triceps
+  { id: "triceps-rope", categorie: "poussee", groupe: "Triceps", name: "Triceps poulie haute (corde)", machine: "Technogym Selection Poulie", muscle: "Triceps", sets: 3, reps: "12", charge_s12: "20 kg", charge_s34: "25 kg", repos: "1'00", tips: "Coudes collés au corps · Écarter la corde en bas" },
+  { id: "dips-machine", categorie: "poussee", groupe: "Triceps", name: "Dips machine", machine: "Technogym Selection Dip", muscle: "Triceps · Pectoraux bas", sets: 3, reps: "12", charge_s12: "30 kg", charge_s34: "40 kg", repos: "1'15", tips: "Buste droit pour cibler les triceps" },
+  { id: "triceps-overhead", categorie: "poussee", groupe: "Triceps", name: "Extension nuque haltère", machine: "Haltère (2 mains)", muscle: "Triceps (longue portion)", sets: 3, reps: "12", charge_s12: "10 kg", charge_s34: "12 kg", repos: "1'00", tips: "Coudes fixes vers l'avant · Amplitude complète" },
+
+  // ===== TIRAGE =====
+  // Dos (largeur)
+  { id: "lat-pulldown", categorie: "tirage", groupe: "Dos (largeur)", name: "Tirage vertical (Lat Pulldown)", machine: "Technogym Selection Lat Machine", muscle: "Grand dorsal · Biceps", sets: 3, reps: "12", charge_s12: "40 kg", charge_s34: "50 kg", repos: "1'30", tips: "Tirer vers la poitrine · PAS derrière la nuque" },
+  { id: "assisted-pullup", categorie: "tirage", groupe: "Dos (largeur)", name: "Tractions assistées machine", machine: "Technogym Selection Assisted Pull-up", muscle: "Grand dorsal", sets: 3, reps: "10", charge_s12: "assist. -30 kg", charge_s34: "assist. -20 kg", repos: "1'30", tips: "Amplitude complète · Contrôle de la descente" },
+
+  // Dos (épaisseur)
+  { id: "seated-row", categorie: "tirage", groupe: "Dos (épaisseur)", name: "Rowing machine assis", machine: "Technogym Selection Seated Row", muscle: "Dos (épaisseur)", sets: 3, reps: "12", charge_s12: "35 kg", charge_s34: "45 kg", repos: "1'30", tips: "Poitrine contre le support · Contrôler le retour" },
+  { id: "low-row", categorie: "tirage", groupe: "Dos (épaisseur)", name: "Tirage horizontal poulie basse", machine: "Technogym Selection Low Row", muscle: "Rhomboïdes · Trapèzes", sets: 3, reps: "12", charge_s12: "30 kg", charge_s34: "35 kg", repos: "1'15", tips: "Buste fixe · Tirer vers le nombril · Serrer 1s en fin" },
+  { id: "row-db", categorie: "tirage", groupe: "Dos (épaisseur)", name: "Rowing haltère unilatéral", machine: "Banc + haltère", muscle: "Dos (épaisseur)", sets: 3, reps: "12/bras", charge_s12: "16 kg", charge_s34: "20 kg", repos: "1'15", tips: "Dos plat · Tirer vers la hanche · Un bras à la fois" },
+
+  // Épaules postérieures
+  { id: "reverse-fly", categorie: "tirage", groupe: "Épaules postérieures", name: "Oiseau machine (Reverse Fly)", machine: "Technogym Selection Rear Delt", muscle: "Deltoïdes postérieurs · Rhomboïdes", sets: 3, reps: "15", charge_s12: "15 kg", charge_s34: "20 kg", repos: "1'00", tips: "Bras à hauteur des épaules max · Serrer les omoplates" },
+  { id: "reverse-fly-db", categorie: "tirage", groupe: "Épaules postérieures", name: "Oiseau haltères (buste penché)", machine: "Haltères + buste penché", muscle: "Deltoïdes postérieurs", sets: 3, reps: "15", charge_s12: "6 kg", charge_s34: "8 kg", repos: "1'00", tips: "Buste ~45° · Tempo lent · Ne pas balancer" },
+
+  // Biceps
+  { id: "biceps-curl-db", categorie: "tirage", groupe: "Biceps", name: "Curl biceps haltères (alternés)", machine: "Haltères Technogym (rack libre)", muscle: "Biceps", sets: 3, reps: "12/bras", charge_s12: "8 kg", charge_s34: "10 kg", repos: "1'00", tips: "Debout, pas d'élan · Descente lente (2s)" },
+  { id: "biceps-curl-cable", categorie: "tirage", groupe: "Biceps", name: "Curl biceps poulie basse", machine: "Poulie basse + barre", muscle: "Biceps", sets: 3, reps: "12", charge_s12: "20 kg", charge_s34: "25 kg", repos: "1'00", tips: "Coudes fixes · Amplitude complète" },
+  { id: "biceps-machine", categorie: "tirage", groupe: "Biceps", name: "Curl pupitre machine", machine: "Technogym Selection Arm Curl", muscle: "Biceps", sets: 3, reps: "12", charge_s12: "20 kg", charge_s34: "25 kg", repos: "1'00", tips: "Bras calés · Contrôle · Ne pas décoller les coudes" },
+
+  // ===== GAINAGE (commun aux deux séances) =====
+  { id: "plank", categorie: "both", groupe: "Gainage", name: "Gainage (planche)", machine: "Au sol (tapis)", muscle: "Sangle abdominale", sets: 3, reps: "30-40s", charge_s12: "PDC", charge_s34: "PDC", repos: "0'45", tips: "Face + côté D + côté G · Bassin neutre" },
+  { id: "plank-lateral", categorie: "both", groupe: "Gainage", name: "Gainage latéral", machine: "Au sol (tapis)", muscle: "Obliques", sets: 3, reps: "20-30s/côté", charge_s12: "PDC", charge_s34: "PDC", repos: "0'45", tips: "Corps aligné · Hanches hautes" },
+  { id: "plank-dynamic", categorie: "both", groupe: "Gainage", name: "Gainage dynamique (mountain climbers)", machine: "Au sol (tapis)", muscle: "Abdominaux · Cardio", sets: 3, reps: "30s", charge_s12: "PDC", charge_s34: "PDC", repos: "0'45", tips: "Rythme contrôlé · Dos plat" },
+];
+
+// Composition par défaut de chaque séance (liste d'identifiants du catalogue).
+const DEFAULT_COMPOSITION = {
+  poussee: ["chest-press", "incline-press", "pec-fly", "lat-raise-db", "triceps-rope", "plank"],
+  tirage: ["lat-pulldown", "seated-row", "low-row", "reverse-fly", "biceps-curl-db", "plank"],
 };
 
 // ---- CONFIG ----
@@ -149,6 +83,11 @@ const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyhpRzNSm3900H
 // ---- STATE ----
 let currentWeekOffset = 0;
 let currentSession = "poussee";
+
+let catalog = CATALOG_DEFAULT.slice();        // catalogue actif (par défaut ou distant)
+let catalogById = {};                          // index id -> exercice
+const sessionExercises = { poussee: [], tirage: [] };  // exercices résolus affichés
+const sessionCompIds = { poussee: [], tirage: [] };    // identifiants effectivement affichés
 
 // ---- UTILS ----
 function getMonday(date) {
@@ -165,7 +104,11 @@ function formatDate(date) {
 }
 
 function formatDateISO(date) {
-  return date.toISOString().split('T')[0];
+  // Date locale (évite le décalage UTC de toISOString).
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function isToday(date) {
@@ -173,6 +116,82 @@ function isToday(date) {
   return date.getDate() === today.getDate() &&
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear();
+}
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ---- CATALOGUE ----
+function buildCatalogIndex() {
+  catalogById = {};
+  catalog.forEach(ex => { catalogById[ex.id] = ex; });
+}
+
+// Charge le catalogue distant (onglet "Catalogue") si disponible, sinon garde
+// le cache local ou le repli intégré. Ne bloque jamais l'appli.
+async function loadCatalog() {
+  const cached = localStorage.getItem('catalogue-cache');
+  if (cached) {
+    try {
+      const arr = JSON.parse(cached);
+      if (Array.isArray(arr) && arr.length) catalog = arr;
+    } catch (e) { /* cache corrompu : on garde le repli */ }
+  }
+  buildCatalogIndex();
+
+  if (!GOOGLE_SHEET_URL) return;
+
+  try {
+    const res = await fetch(`${GOOGLE_SHEET_URL}?action=catalogue`);
+    const json = await res.json();
+    if (json && json.status === "ok" && Array.isArray(json.catalogue) && json.catalogue.length) {
+      catalog = json.catalogue;
+      localStorage.setItem('catalogue-cache', JSON.stringify(catalog));
+      buildCatalogIndex();
+    }
+  } catch (err) {
+    console.warn("Catalogue distant indisponible, repli local utilisé.", err);
+  }
+}
+
+function availableForCategory(session) {
+  return catalog.filter(ex => ex.categorie === session || ex.categorie === "both");
+}
+
+// ---- COMPOSITION ----
+function getComposition(session) {
+  const raw = localStorage.getItem(`composition-${session}`);
+  if (raw) {
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length) return arr;
+    } catch (e) { /* ignore */ }
+  }
+  return DEFAULT_COMPOSITION[session].slice();
+}
+
+function setComposition(session, ids) {
+  localStorage.setItem(`composition-${session}`, JSON.stringify(ids));
+}
+
+// Résout la composition en exercices réels (ignore les ids introuvables).
+function resolveExercises(session) {
+  let ids = getComposition(session);
+  let exs = ids.map(id => catalogById[id]).filter(Boolean);
+
+  if (!exs.length) {
+    ids = DEFAULT_COMPOSITION[session].slice();
+    exs = ids.map(id => catalogById[id]).filter(Boolean);
+  } else {
+    // Ne garder que les ids réellement résolus (cohérence index <-> affichage).
+    ids = exs.map(ex => ex.id);
+  }
+
+  sessionCompIds[session] = ids;
+  sessionExercises[session] = exs;
 }
 
 // ---- AGENDA VIEW ----
@@ -231,7 +250,8 @@ function changeWeek(offset) {
 
 // ---- CARNET VIEW ----
 function renderExercises(sessionKey) {
-  const exercises = EXERCISES[sessionKey];
+  resolveExercises(sessionKey);
+  const exercises = sessionExercises[sessionKey];
   const container = document.getElementById(`exercises-${sessionKey}`);
   container.innerHTML = '';
 
@@ -246,12 +266,12 @@ function renderExercises(sessionKey) {
       setsHTML += `
         <div class="set-box" id="set-${sessionKey}-${idx}-${s}">
           <span class="set-label">Série ${s}</span>
-          <input type="checkbox" class="set-check" 
+          <input type="checkbox" class="set-check"
                  id="check-${sessionKey}-${idx}-${s}"
                  onchange="onSetCheck('${sessionKey}', ${idx}, ${s})">
-          <input type="text" class="set-input" 
+          <input type="text" class="set-input"
                  id="weight-${sessionKey}-${idx}-${s}"
-                 placeholder="${ex.charge_s12}"
+                 placeholder="${escapeHtml(ex.charge_s12)}"
                  title="Charge utilisée">
         </div>
       `;
@@ -259,28 +279,40 @@ function renderExercises(sessionKey) {
 
     item.innerHTML = `
       <div class="exercise-top">
-        <input type="checkbox" class="exercise-check" 
+        <input type="checkbox" class="exercise-check"
                id="excheck-${sessionKey}-${idx}"
                onchange="onExerciseCheck('${sessionKey}', ${idx})">
-        <span class="exercise-num">${ex.num}</span>
+        <span class="exercise-num">${idx + 1}</span>
         <div class="exercise-info">
-          <div class="exercise-name">${ex.name}</div>
-          <div class="exercise-machine">${ex.machine}</div>
-          <div class="exercise-muscle">${ex.muscle} · ${ex.tips}</div>
+          <div class="exercise-name">${escapeHtml(ex.name)}</div>
+          <div class="exercise-machine">${escapeHtml(ex.machine)}</div>
+          <div class="exercise-muscle"><span class="exercise-group">${escapeHtml(ex.groupe)}</span> · ${escapeHtml(ex.muscle)} · ${escapeHtml(ex.tips)}</div>
+        </div>
+        <div class="exercise-actions">
+          <button class="ex-action" title="Remplacer par un autre exercice du même groupe" onclick="openReplaceModal(${idx})">🔄</button>
+          <button class="ex-action" title="Retirer de la séance" onclick="removeExercise(${idx})">🗑️</button>
         </div>
       </div>
       <div class="sets-grid">
         ${setsHTML}
       </div>
       <div class="exercise-meta">
-        <span class="meta-badge charge">📊 ${ex.reps} reps</span>
-        <span class="meta-badge charge">🏋️ ${ex.charge_s12} → ${ex.charge_s34}</span>
-        <span class="meta-badge repos">⏱ repos ${ex.repos}</span>
+        <span class="meta-badge charge">📊 ${escapeHtml(ex.reps)} reps</span>
+        <span class="meta-badge charge">🏋️ ${escapeHtml(ex.charge_s12)} → ${escapeHtml(ex.charge_s34)}</span>
+        <span class="meta-badge repos">⏱ repos ${escapeHtml(ex.repos)}</span>
       </div>
     `;
 
     container.appendChild(item);
   });
+
+  // Bouton "Ajouter un exercice"
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn-add-exercise';
+  addBtn.type = 'button';
+  addBtn.textContent = '➕ Ajouter un exercice';
+  addBtn.onclick = () => openAddModal();
+  container.appendChild(addBtn);
 }
 
 function onSetCheck(session, exIdx, setNum) {
@@ -293,8 +325,8 @@ function onSetCheck(session, exIdx, setNum) {
     box.classList.remove('checked');
   }
 
-  // Check if all sets done → auto-check exercise
-  const ex = EXERCISES[session][exIdx];
+  // Toutes les séries faites → coche l'exercice
+  const ex = sessionExercises[session][exIdx];
   let allDone = true;
   for (let s = 1; s <= ex.sets; s++) {
     if (!document.getElementById(`check-${session}-${exIdx}-${s}`).checked) {
@@ -307,35 +339,174 @@ function onSetCheck(session, exIdx, setNum) {
   exCheck.checked = allDone;
 
   const exItem = exCheck.closest('.exercise-item');
-  if (allDone) {
-    exItem.classList.add('completed');
-  } else {
-    exItem.classList.remove('completed');
-  }
+  exItem.classList.toggle('completed', allDone);
 }
 
 function onExerciseCheck(session, exIdx) {
   const exCheck = document.getElementById(`excheck-${session}-${exIdx}`);
-  const ex = EXERCISES[session][exIdx];
+  const ex = sessionExercises[session][exIdx];
   const exItem = exCheck.closest('.exercise-item');
 
-  // Toggle all sets
   for (let s = 1; s <= ex.sets; s++) {
     const setCheck = document.getElementById(`check-${session}-${exIdx}-${s}`);
     const box = document.getElementById(`set-${session}-${exIdx}-${s}`);
     setCheck.checked = exCheck.checked;
-    if (exCheck.checked) {
-      box.classList.add('checked');
-    } else {
-      box.classList.remove('checked');
-    }
+    box.classList.toggle('checked', exCheck.checked);
   }
 
-  if (exCheck.checked) {
-    exItem.classList.add('completed');
-  } else {
-    exItem.classList.remove('completed');
+  exItem.classList.toggle('completed', exCheck.checked);
+}
+
+// ---- REMPLACER / AJOUTER / RETIRER ----
+// Applique une nouvelle liste d'ids en préservant les saisies en cours.
+function commitComposition(session, ids) {
+  const live = collectSessionData(session);
+  setComposition(session, ids);
+  renderExercises(session);
+  applySessionData(session, live);
+}
+
+function openReplaceModal(idx) {
+  const ex = sessionExercises[currentSession][idx];
+  const options = availableForCategory(currentSession)
+    .filter(o => o.groupe === ex.groupe && o.id !== ex.id);
+
+  openModal(`Remplacer — ${ex.groupe}`, body => {
+    if (!options.length) {
+      body.innerHTML = `<p class="picker-empty">Aucune alternative dans le catalogue pour le groupe « ${escapeHtml(ex.groupe)} ».<br>Ajoute-en dans l'onglet Catalogue du Google Sheet.</p>`;
+      return;
+    }
+    options.forEach(o => body.appendChild(exOptionButton(o, () => {
+      const ids = sessionCompIds[currentSession].slice();
+      ids[idx] = o.id;
+      commitComposition(currentSession, ids);
+      closeModal();
+    })));
+  });
+}
+
+function removeExercise(idx) {
+  if (sessionCompIds[currentSession].length <= 1) {
+    alert("Une séance doit contenir au moins un exercice.");
+    return;
   }
+  const ex = sessionExercises[currentSession][idx];
+  if (!confirm(`Retirer « ${ex.name} » de la séance ?`)) return;
+
+  const ids = sessionCompIds[currentSession].slice();
+  ids.splice(idx, 1);
+  commitComposition(currentSession, ids);
+}
+
+function openAddModal() {
+  const options = availableForCategory(currentSession);
+  openModal("Ajouter un exercice", body => {
+    if (!options.length) {
+      body.innerHTML = `<p class="picker-empty">Catalogue vide pour cette séance.</p>`;
+      return;
+    }
+    const groups = [];
+    options.forEach(o => { if (!groups.includes(o.groupe)) groups.push(o.groupe); });
+
+    groups.forEach(g => {
+      const heading = document.createElement('div');
+      heading.className = 'picker-group';
+      heading.textContent = g;
+      body.appendChild(heading);
+
+      options.filter(o => o.groupe === g).forEach(o => {
+        const already = sessionCompIds[currentSession].includes(o.id);
+        body.appendChild(exOptionButton(o, () => {
+          const ids = sessionCompIds[currentSession].slice();
+          ids.push(o.id);
+          commitComposition(currentSession, ids);
+          closeModal();
+        }, already));
+      });
+    });
+  });
+}
+
+function resetComposition() {
+  if (!confirm("Revenir à la composition par défaut de cette séance ? Tes remplacements/ajouts seront perdus.")) return;
+  const live = collectSessionData(currentSession);
+  localStorage.removeItem(`composition-${currentSession}`);
+  renderExercises(currentSession);
+  applySessionData(currentSession, live);
+}
+
+// ---- MODALE ----
+function openModal(title, bodyBuilder) {
+  document.getElementById('modal-title').textContent = title;
+  const body = document.getElementById('modal-body');
+  body.innerHTML = '';
+  bodyBuilder(body);
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function exOptionButton(ex, onClick, already) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'picker-option' + (already ? ' already' : '');
+  b.innerHTML = `
+    <span class="picker-name">${escapeHtml(ex.name)}${already ? ' <span class="picker-tag">déjà dans la séance</span>' : ''}</span>
+    <span class="picker-machine">${escapeHtml(ex.machine)}</span>
+    <span class="picker-meta">${escapeHtml(ex.muscle)} · ${escapeHtml(ex.reps)} reps · ${escapeHtml(ex.charge_s12)} → ${escapeHtml(ex.charge_s34)}</span>
+  `;
+  b.onclick = onClick;
+  return b;
+}
+
+// ---- COLLECTE / APPLICATION DE L'ÉTAT UI ----
+// Lit l'état courant de l'UI d'une séance, indexé par identifiant d'exercice.
+function collectSessionData(session) {
+  const data = {};
+  sessionExercises[session].forEach((ex, idx) => {
+    const exCheck = document.getElementById(`excheck-${session}-${idx}`);
+    if (!exCheck) return;
+    const sets = [];
+    for (let s = 1; s <= ex.sets; s++) {
+      const c = document.getElementById(`check-${session}-${idx}-${s}`);
+      const w = document.getElementById(`weight-${session}-${idx}-${s}`);
+      sets.push({ checked: c ? c.checked : false, weight: w ? w.value : "" });
+    }
+    data[ex.id] = { checked: exCheck.checked, sets };
+  });
+  return data;
+}
+
+// Applique un état (indexé par id) à l'UI ; réinitialise les exercices absents.
+function applySessionData(session, data) {
+  data = data || {};
+  sessionExercises[session].forEach((ex, idx) => {
+    const exData = data[ex.id];
+    const exCheck = document.getElementById(`excheck-${session}-${idx}`);
+    if (!exCheck) return;
+    const exItem = exCheck.closest('.exercise-item');
+
+    const checked = !!(exData && exData.checked);
+    exCheck.checked = checked;
+    exItem.classList.toggle('completed', checked);
+
+    for (let s = 1; s <= ex.sets; s++) {
+      const setCheck = document.getElementById(`check-${session}-${idx}-${s}`);
+      const setBox = document.getElementById(`set-${session}-${idx}-${s}`);
+      const weightInput = document.getElementById(`weight-${session}-${idx}-${s}`);
+      const sd = exData && exData.sets ? exData.sets[s - 1] : null;
+
+      if (setCheck) {
+        setCheck.checked = !!(sd && sd.checked);
+        setBox.classList.toggle('checked', !!(sd && sd.checked));
+      }
+      if (weightInput) {
+        weightInput.value = sd && sd.weight ? sd.weight : "";
+      }
+    }
+  });
 }
 
 // ---- SAVE / LOAD ----
@@ -351,24 +522,7 @@ async function saveSession() {
     return;
   }
 
-  const data = {};
-  const exercises = EXERCISES[currentSession];
-
-  exercises.forEach((ex, idx) => {
-    const exData = {
-      checked: document.getElementById(`excheck-${currentSession}-${idx}`).checked,
-      sets: []
-    };
-
-    for (let s = 1; s <= ex.sets; s++) {
-      exData.sets.push({
-        checked: document.getElementById(`check-${currentSession}-${idx}-${s}`).checked,
-        weight: document.getElementById(`weight-${currentSession}-${idx}-${s}`).value
-      });
-    }
-
-    data[idx] = exData;
-  });
+  const data = collectSessionData(currentSession);
 
   // 1) Sauvegarde locale (toujours, source de vérité + hors-ligne)
   localStorage.setItem(getSessionKey(), JSON.stringify(data));
@@ -395,7 +549,7 @@ async function saveSession() {
 
 // Construit la charge utile lisible et l'envoie à l'application Apps Script.
 async function sendToGoogleSheet(date, data) {
-  const exercises = EXERCISES[currentSession];
+  const exercises = sessionExercises[currentSession];
   const sessionLabels = { poussee: "Poussée", tirage: "Tirage" };
 
   const payload = {
@@ -403,19 +557,24 @@ async function sendToGoogleSheet(date, data) {
     date: date,
     session: currentSession,
     sessionLabel: sessionLabels[currentSession] || currentSession,
-    exercises: exercises.map((ex, idx) => ({
-      num: ex.num,
-      name: ex.name,
-      machine: ex.machine,
-      muscle: ex.muscle,
-      repsTarget: ex.reps,
-      done: data[idx] ? data[idx].checked : false,
-      sets: (data[idx] ? data[idx].sets : []).map((s, sIdx) => ({
-        set: sIdx + 1,
-        done: s.checked,
-        weight: s.weight || ""
-      }))
-    }))
+    exercises: exercises.map((ex, idx) => {
+      const d = data[ex.id] || { checked: false, sets: [] };
+      return {
+        num: idx + 1,
+        id: ex.id,
+        name: ex.name,
+        machine: ex.machine,
+        groupe: ex.groupe,
+        muscle: ex.muscle,
+        repsTarget: ex.reps,
+        done: d.checked,
+        sets: (d.sets || []).map((s, sIdx) => ({
+          set: sIdx + 1,
+          done: s.checked,
+          weight: s.weight || ""
+        }))
+      };
+    })
   };
 
   try {
@@ -436,79 +595,17 @@ async function sendToGoogleSheet(date, data) {
 }
 
 function loadSessionData() {
-  const key = getSessionKey();
-  const raw = localStorage.getItem(key);
-
-  if (!raw) {
-    // Reset UI
-    resetSessionUI();
-    return;
+  const raw = localStorage.getItem(getSessionKey());
+  let data = {};
+  if (raw) {
+    try { data = JSON.parse(raw) || {}; } catch (e) { data = {}; }
   }
-
-  const data = JSON.parse(raw);
-  const exercises = EXERCISES[currentSession];
-
-  exercises.forEach((ex, idx) => {
-    const exData = data[idx];
-    if (!exData) return;
-
-    const exCheck = document.getElementById(`excheck-${currentSession}-${idx}`);
-    exCheck.checked = exData.checked;
-
-    const exItem = exCheck.closest('.exercise-item');
-    if (exData.checked) {
-      exItem.classList.add('completed');
-    } else {
-      exItem.classList.remove('completed');
-    }
-
-    exData.sets.forEach((setData, sIdx) => {
-      const s = sIdx + 1;
-      const setCheck = document.getElementById(`check-${currentSession}-${idx}-${s}`);
-      const setBox = document.getElementById(`set-${currentSession}-${idx}-${s}`);
-      const weightInput = document.getElementById(`weight-${currentSession}-${idx}-${s}`);
-
-      if (setCheck) {
-        setCheck.checked = setData.checked;
-        if (setData.checked) {
-          setBox.classList.add('checked');
-        }
-      }
-      if (weightInput && setData.weight) {
-        weightInput.value = setData.weight;
-      }
-    });
-  });
-}
-
-function resetSessionUI() {
-  const exercises = EXERCISES[currentSession];
-  exercises.forEach((ex, idx) => {
-    const exCheck = document.getElementById(`excheck-${currentSession}-${idx}`);
-    if (exCheck) {
-      exCheck.checked = false;
-      exCheck.closest('.exercise-item').classList.remove('completed');
-    }
-
-    for (let s = 1; s <= ex.sets; s++) {
-      const setCheck = document.getElementById(`check-${currentSession}-${idx}-${s}`);
-      const setBox = document.getElementById(`set-${currentSession}-${idx}-${s}`);
-      const weightInput = document.getElementById(`weight-${currentSession}-${idx}-${s}`);
-
-      if (setCheck) {
-        setCheck.checked = false;
-        setBox.classList.remove('checked');
-      }
-      if (weightInput) {
-        weightInput.value = '';
-      }
-    }
-  });
+  applySessionData(currentSession, data);
 }
 
 function resetSession() {
   if (confirm("Réinitialiser cette séance ?")) {
-    resetSessionUI();
+    applySessionData(currentSession, {});
     const date = document.getElementById('session-date').value;
     if (date) {
       localStorage.removeItem(getSessionKey());
@@ -534,17 +631,16 @@ function showSession(sessionKey) {
   document.querySelectorAll('.carnet-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.carnet-tab[data-session="${sessionKey}"]`).classList.add('active');
 
-  // Reload data for this session
   loadSessionData();
 }
 
 // ---- INIT ----
-function init() {
-  // Set today's date as default
-  const today = new Date();
-  document.getElementById('session-date').value = formatDateISO(today);
+async function init() {
+  // Date du jour par défaut
+  document.getElementById('session-date').value = formatDateISO(new Date());
 
-  // Render
+  await loadCatalog();
+
   renderWeek();
   renderExercises('poussee');
   renderExercises('tirage');
@@ -560,7 +656,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  // Show install banner
   const banner = document.getElementById('install-banner');
   if (banner) banner.classList.remove('hidden');
 });
@@ -575,6 +670,14 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Install outcome:', outcome);
       deferredPrompt = null;
       document.getElementById('install-banner').classList.add('hidden');
+    });
+  }
+
+  // Fermer la modale au clic sur le fond
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
     });
   }
 });
